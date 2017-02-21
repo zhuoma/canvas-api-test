@@ -2,8 +2,8 @@
 	"compilerOptions": {
 		"target": "es5",
 		"module": "commonjs",
-		"watch": false,
-		"sourceMap": false,
+		"watch": true,
+		"sourceMap": true,
 		"outDir": "./out"
 	},
 	"exclude": [
