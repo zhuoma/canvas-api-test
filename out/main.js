@@ -1,182 +1,111 @@
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
+var _this = this;
 window.onload = function () {
-    var canvas = document.getElementById("app");
-    var context2D = canvas.getContext("2d");
-    var DEG = Math.PI / 180;
-     /* cxt.fillStyle = "#FF0000";
-    cxt.fillRect(0, 0, 150, 75);
-    var cxt = c.getContext("2d");
-    var grd = cxt.createLinearGradient(50, 50, 175, 50);
-    grd.addColorStop(0, "#FF0000");
-    grd.addColorStop(1, "#00FF00");
-    cxt.fillStyle = grd;
-    cxt.fillRect(0, 90, 175, 50);*/
+    //1.任何一个显示对象需要一个1矩阵
+    //2.把显示对象的属性转化为自己的相对矩阵
+    //3.把显示对象的相对矩阵与父对象的全局矩阵相乘，得到显示对象的全局矩阵
+    //4.对渲染上下文设置显示对象的全局矩阵
+    var canvas = document.getElementById("app"); //使用 id 来寻找 canvas 元素
+    var context2D = canvas.getContext("2d"); //得到内建的 HTML5 对象，拥有多种绘制路径、矩形、圆形、字符以及添加图像的方法
     var stage = new DisplayObjectContainer();
-    var img = new Bitmap();
-    img.src = "image.jpg";
-    img.scaleX = 0.5;
-    img.transY = 10;
-    img.alpha = 0.1;
-    img.rotation = 45;
-    var tf1 = new TextField();
-    tf1.text = "Hello";
-    tf1.transX = 0;
-    tf1.alpha = 1;
-    var tf2 = new TextField();
-    tf2.text = "Hello";
-    tf2.transX = 100;
-    tf2.transY = 20;
-    stage.addChild(img);
-    stage.addChild(tf1);
-    stage.addChild(tf2);
-    //context2D.setTransform(1, 0, 0, 1, 0, 0);
-    //stage.removechild(tf1);
-    //context2D.save();
+    //第二层容器
+    var panel = new DisplayObjectContainer();
+    panel.x = 120;
+    panel.y = 50;
+    panel.alpha = 0.5;
     setInterval(function () {
-     
-        context2D.setTransform(1, 0, 0, 1, 0, 0);
-        context2D.clearRect(0, 0, canvas.width, canvas.height);
-        tf1.transY++;
-        img.transX++;
-        stage.draw(context2D);
-    }, 60);
-    console.log(canvas);
-};
-var DisplayObject = (function () {
-    function DisplayObject() {
-        this.transX = 0;
-        this.transY = 0;
-        this.alpha = 1;
-        this.globalAppha = 1;
-        this.scaleX = 1;
-        this.scaleY = 1;
-        this.rotation = 0;
-    }
-    DisplayObject.prototype.draw = function (context2D) {
         context2D.save();
-        if (this.parent) {
-            this.globalAppha = this.parent.globalAppha * this.alpha;
-        }
-        else {
-            this.globalAppha = this.alpha;
-        }
-        context2D.globalAlpha = this.globalAppha;
-        this.setMatrix();
-        context2D.setTransform(this.globalMatrix.a, this.globalMatrix.b, this.globalMatrix.c, this.globalMatrix.d, this.globalMatrix.tx, this.globalMatrix.ty);
-        this.render(context2D);
+        context2D.clearRect(0, 0, canvas.width, canvas.height); //在显示图片之前先清屏，将之前帧的图片去掉,清屏范围最好设置成画布的宽与高
+        stage.draw(context2D); //最外层开始画
+        context2D.restore();
+    }, 50);
+    var list = new DisplayObjectContainer();
+    list.addEventListener("onmousemove", function (e) {
+        var dy = currentY - lastY;
+        list.y = list.y + dy;
+    }, _this, false);
+    /*
+    //模拟TextField与Bitmap
+    */
+    //文字
+   var button = new Button();
+    button.x = 10;
+    button.y = 30;
+    button.text = "点击图片滑动";
+    button.color = "#FF0000";
+    button.size = 20;
+    button.enable = true;
+    button.addEventListener("onclick", function () {
+        button.text = "欧尼酱";
+    }, _this, false);
+    var word2 = new TextField();
+    word2.text = "第二层容器";
+    word2.color = "#0001FF";
+    word2.size = 30;
+    //图片
+    var avater = new Bitmap();
+    avater.image.src = "avater.jpg";
+    //加载完图片资源
+    avater.image.onload = function () {
+        list.addChild(avater);
+        list.addChild(button);
+        panel.addChild(word2);
+        stage.addChild(list);
+        stage.addChild(panel);
+        //stage.removeChild(panel);
     };
-    DisplayObject.prototype.render = function (context2D) {
+    //记录位置
+    var currentX;
+    var currentY;
+    var lastX;
+    var lastY;
+    var isMouseDown = false; //检测鼠标是否按下
+    var hitResult; //检测是否点到控件
+    window.onmousedown = function (e) {
+        isMouseDown = true;
+        var targetDisplayObjectArray = EventManager.getInstance().targetDisplayObjcetArray;
+        targetDisplayObjectArray.splice(0, targetDisplayObjectArray.length);
+        hitResult = stage.hitTest(e.offsetX, e.offsetY);
+        currentX = e.offsetX;
+        currentY = e.offsetY;
     };
-    DisplayObject.prototype.setMatrix = function () {
-        this.localMatrix = new math.Matrix();
-        this.localMatrix.updateFromDisplayObject(this.transX, this.transY, this.scaleX, this.scaleY, this.rotation);
-        if (this.parent) {
-            this.globalMatrix = math.matrixAppendMatrix(this.localMatrix, this.parent.globalMatrix);
-        }
-        else {
-            this.globalMatrix = new math.Matrix(1, 0, 0, 1, 0, 0);
-        }
-    };
-    return DisplayObject;
-}());
-var Bitmap = (function (_super) {
-    __extends(Bitmap, _super);
-    function Bitmap() {
-        var _this = _super.call(this) || this;
-        //texture: string;
-        _this._src = "";
-        _this.isLoaded = false;
-        _this.image = document.createElement('img');
-        return _this;
-        // this.image.src = ad;
-        //this.isLoade = false;
-    }
-    Object.defineProperty(Bitmap.prototype, "src", {
-        set: function (value) {
-            this._src = value;
-            this.isLoaded = false;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Bitmap.prototype.render = function (context2D) {
-        var _this = this;
-        context2D.globalAlpha = this.alpha;
-        if (this.isLoaded) {
-            context2D.drawImage(this.image, 0, 0);
-        }
-        else {
-            this.image.src = this._src;
-            this.image.onload = function () {
-                context2D.drawImage(_this.image, 0, 0);
-                _this.isLoaded = true;
-            };
-        }
-    };
-    return Bitmap;
-}(DisplayObject));
-var TextField = (function (_super) {
-    __extends(TextField, _super);
-    function TextField() {
-        var _this = _super !== null && _super.apply(this, arguments) || this;
-        _this.text = "";
-        _this.font = "Arial";
-        _this.size = "40";
-        return _this;
-    }
-    TextField.prototype.render = function (context2D) {
-        context2D.font = this.size + "px " + this.font;
-        context2D.fillText(this.text, 0, 0);
-    };
-    return TextField;
-}(DisplayObject));
-var DisplayObjectContainer = (function (_super) {
-    __extends(DisplayObjectContainer, _super);
-    function DisplayObjectContainer() {
-        var _this = _super !== null && _super.apply(this, arguments) || this;
-        _this.array = [];
-        return _this;
-    }
-    DisplayObjectContainer.prototype.render = function (context2D) {
-        for (var _i = 0, _a = this.array; _i < _a.length; _i++) {
-            var Drawable = _a[_i];
-            Drawable.draw(context2D);
+    window.onmousemove = function (e) {
+        var targetDisplayObjcetArray = EventManager.getInstance().targetDisplayObjcetArray;
+        lastX = currentX;
+        lastY = currentY;
+        currentX = e.offsetX;
+        currentY = e.offsetY;
+        if (isMouseDown) {
+            for (var i = 0; i < targetDisplayObjcetArray.length; i++) {
+                for (var _i = 0, _a = targetDisplayObjcetArray[i].eventArray; _i < _a.length; _i++) {
+                    var event_1 = _a[_i];
+                    if (event_1.type.match("onmousemove") && event_1.ifCapture) {
+                        event_1.func(e);
+                    }
+                }
+            }
+            for (var i = targetDisplayObjcetArray.length - 1; i >= 0; i--) {
+                for (var _b = 0, _c = targetDisplayObjcetArray[i].eventArray; _b < _c.length; _b++) {
+                    var event_2 = _c[_b];
+                    if (event_2.type.match("onmousemove") && !event_2.ifCapture) {
+                        event_2.func(e);
+                    }
+                }
+            }
         }
     };
-    DisplayObjectContainer.prototype.addChild = function (child) {
-        if (this.array.indexOf(child) == -1) {
-            this.array.push(child);
-            child.parent = this;
+    window.onmouseup = function (e) {
+        isMouseDown = false;
+        var targetDisplayObjcetArray = EventManager.getInstance().targetDisplayObjcetArray;
+        targetDisplayObjcetArray.splice(0, targetDisplayObjcetArray.length);
+        var newHitRusult = stage.hitTest(e.offsetX, e.offsetY);
+        for (var i = targetDisplayObjcetArray.length - 1; i >= 0; i--) {
+            for (var _i = 0, _a = targetDisplayObjcetArray[i].eventArray; _i < _a.length; _i++) {
+                var event_3 = _a[_i];
+                if (event_3.type.match("onclick") && newHitRusult == hitResult) {
+                    event_3.func(e);
+                }
+            }
         }
     };
-    DisplayObjectContainer.prototype.removechild = function (child) {
-        var index = this.array.indexOf(child);
-        if (index > -1) {
-            this.array.splice(index, 1);
-        }
-    };
-    DisplayObjectContainer.prototype.removeall = function () {
-        this.array = [];
-    };
-    return DisplayObjectContainer;
-}(DisplayObject));
-var Graphics = (function () {
-    function Graphics() {
-    }
-    return Graphics;
-}());
-var Shape = (function (_super) {
-    __extends(Shape, _super);
-    function Shape() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    Shape.prototype.draw = function (context2D) {
-        context2D.fillRect(0, 0, 0, 0);
-    };
-    return Shape;
-}(DisplayObject));
+};
 //# sourceMappingURL=main.js.map

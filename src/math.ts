@@ -1,28 +1,5 @@
-// window.onload = () =>{
-//     var DEG = Math.PI / 180;
-//     var c = document.getElementById("myCanvas") as HTMLCanvasElement
-//     var context2D = c.getContext("2d");
-//     context2D.fillStyle = "FF0000";
-
-//     var m1 = new math.Matrix(2,Math.cos(30 * DEG),Math.sin);
-
-//    // a c tx     x   ax + cy + tx
-//    // b d ty  *  y = bx + dy + ty 
-//    // 0 0 1      1        1
-
-//    `
-
-//    2 0 100
-//    0 1 0
-//    0 0 1 
-//    `
-
-// //    var a = new COntainer();
-// //    a.x = 100;
-// //    a.scaleX = 2;
-// }
-
 module math {
+
 
     export class Point {
         x: number;
@@ -33,7 +10,31 @@ module math {
         }
     }
 
+    export class Rectangle{
+
+        x : number = 0;
+        y : number = 0;
+        width : number = 1;
+        height : number = 1;
+
+        isPointInRectangle(point : Point){
+
+            var rect = this;
+
+            if(point.x < rect.x + rect.width && point.x > rect.x && point.y < rect.height + rect.y && point.y > rect.y){
+
+                return true;
+
+            }else{
+
+                return false;
+            }
+        }
+    }
+
+
     export function pointAppendMatrix(point: Point, m: Matrix): Point {
+        
         var x = m.a * point.x + m.c * point.y + m.tx;
         var y = m.b * point.x + m.d * point.y + m.ty;
         return new Point(x, y);
@@ -114,6 +115,7 @@ module math {
         public ty: number;
 
         public toString(): string {
+            
             return "(a=" + this.a + ", b=" + this.b + ", c=" + this.c + ", d=" + this.d + ", tx=" + this.tx + ", ty=" + this.ty + ")";
         }
 
@@ -133,3 +135,4 @@ module math {
         }
     }
 }
+

@@ -1,297 +1,167 @@
-
-
 window.onload = () => {
 
-    var canvas = document.getElementById("app") as HTMLCanvasElement;
-    var context2D = canvas.getContext("2d");
-    var DEG = Math.PI / 180;
-    //var context3D = canvas.getContext("webgl");
+    //1.任何一个显示对象需要一个1矩阵
+    //2.把显示对象的属性转化为自己的相对矩阵
+    //3.把显示对象的相对矩阵与父对象的全局矩阵相乘，得到显示对象的全局矩阵
+    //4.对渲染上下文设置显示对象的全局矩阵
 
-    // context2D.fillStyle = "#FF000000";
-    // context2D.strokeStyle = "#00FF00";
+    var canvas = document.getElementById("app") as HTMLCanvasElement;//使用 id 来寻找 canvas 元素
 
-    // context2D.globalAlpha = 1;
-    // context2D.setTransform(1, 0, 0, 1, 50, 50);
-
-    //1 0 50
-    //0 1 50
-    //0 0 1
-
-    // context2D.fill();
-    // context2D.stroke();
-
-    //context2D.fillText("Hellow", 0, 10);
-    //context2D.measureText("Hellow").width;
-    //context2D.clearRect(0, 0, 400, 400);
-    //context2D.fillRect(0,0,100,100);  //设计不好的地方 做一件事情只有一种方法 一个api一个职责
-
-    // var image = document.createElement('img');
-    // image.src = "image.jpg";
-
-
-    //     var m1 = new math.Matrix(2,Math.cos(30 * DEG),Math.sin);
-
-    //    // a c tx     x   ax + cy + tx
-    //    // b d ty  *  y = bx + dy + ty 
-    //    // 0 0 1      1        1
-
-    //    `
-
-    //    2 0 100
-    //    0 1 0
-    //    0 0 1 
-    //    `
-
-    // //    var a = new COntainer();
-    // //    a.x = 100;
-    // //    a.scaleX = 2;·
+    var context2D = canvas.getContext("2d");//得到内建的 HTML5 对象，拥有多种绘制路径、矩形、圆形、字符以及添加图像的方法
 
 
     var stage = new DisplayObjectContainer();
 
-    var img = new Bitmap();
-    img.src = "image.JPG";
-    img.scaleX = 0.5;
-    img.transY = 10;
-    img.alpha = 0.1;
-    img.rotation = 45;
-
-    let tf1 = new TextField();
-    tf1.text = "Hello";
-    tf1.transX = 0;
-    tf1.alpha = 0.5;
-
-    let tf2 = new TextField();
-    tf2.text = "World";
-    tf2.transX = 100;
-    tf2.transY = 20;
-
-    stage.addChild(img);
-    stage.addChild(tf1);
-    stage.addChild(tf2);
-
-    //context2D.setTransform(1, 0, 0, 1, 0, 0);
-    //stage.removechild(tf1);
-    //context2D.save();
+    //第二层容器
+    var panel = new DisplayObjectContainer();
+    panel.x = 120;
+    panel.y = 50;
+    panel.alpha = 0.5;
+    
     setInterval(() => {
 
-        //context2D.restore();
+        context2D.save();
+        context2D.clearRect(0, 0, canvas.width, canvas.height);//在显示图片之前先清屏，将之前帧的图片去掉,清屏范围最好设置成画布的宽与高
+        stage.draw(context2D);//最外层开始画
+        context2D.restore();
 
-       context2D.setTransform(1, 0, 0, 1, 0, 0);
+    }, 50)
 
-        context2D.clearRect(0, 0, canvas.width, canvas.height);
 
-        //context2D.translate(tf1.transX,tf1.transY++);
-        //context2D.translate(img.transX++,img.transY);
-        tf1.transY++;
-        img.transX++;
 
-          stage.draw(context2D);
+    var list = new DisplayObjectContainer();
+    list.addEventListener("onmousemove", (e : MouseEvent) =>{
 
-    }, 60)
+        var dy = currentY - lastY;
+        list.y = list.y + dy;
 
-    console.log(canvas);
+    }, this, false);
 
-};
 
-interface Drawable {
+    /*
+    //模拟TextField与Bitmap
+    */
 
-    draw(context2D: CanvasRenderingContext2D);
 
-}
+    //文字
+    var button = new Button();
+    button.x = 10;
+    button.y = 30;
+    button.text = "点击图片滑动";
+    button.color = "#FF1000"
+    button.size = 20;
+    button.enable = true;
+  /*  button.addEventListener("onclick", ()=>{
 
-class DisplayObject implements Drawable {
+        button.text = "欧尼酱";     
+    },this,false);*/
 
-    transX: number = 0;
+    var word2 = new TextField();
+    word2.text = "第二层容器"
+    word2.color = "#0001FF"
+    word2.size = 30;
+    
+    //图片
+    var avater = new Bitmap();
+    avater.image.src = "avater.jpg";
 
-    transY: number = 0;
 
-    alpha: number = 1;
+    //加载完图片资源
+    avater.image.onload = () => {
 
-    globalAppha: number = 1;
 
-    scaleX: number = 1;
 
-    scaleY: number = 1;
+        list.addChild(avater);
+        list.addChild(button);
+        
+        panel.addChild(word2);
 
-    rotation: number = 0;
+        stage.addChild(list);
+        stage.addChild(panel);
 
-    parent: DisplayObjectContainer;
-
-    globalMatrix: math.Matrix;
-
-    localMatrix: math.Matrix;
-
-    draw(context2D: CanvasRenderingContext2D) {  //应有final
-
-         context2D.save();
-
-        if (this.parent) {
-
-            this.globalAppha = this.parent.globalAppha * this.alpha;
-        }
-        else {
-            this.globalAppha = this.alpha;
-        }
-
-        context2D.globalAlpha = this.globalAppha;
-
-        this.setMatrix();
-
-        context2D.setTransform(this.globalMatrix.a, this.globalMatrix.b, this.globalMatrix.c, this.globalMatrix.d, this.globalMatrix.tx, this.globalMatrix.ty);
-
-        this.render(context2D);
+        //stage.removeChild(panel);
+        
     }
 
-    render(context2D: CanvasRenderingContext2D) {   //模板方法模式
 
-    }
 
-    setMatrix() {
+    //记录位置
+    var currentX : number;
+    var currentY : number;
+    var lastX : number;
+    var lastY : number;
 
-        this.localMatrix = new math.Matrix();
+    var isMouseDown = false;//检测鼠标是否按下
+    var hitResult : DisplayObject;//检测是否点到控件
 
-        this.localMatrix.updateFromDisplayObject(this.transX, this.transY, this.scaleX, this.scaleY, this.rotation);
 
-        if (this.parent) {
+    window.onmousedown = (e)=>{
 
-            this.globalMatrix = math.matrixAppendMatrix(this.localMatrix, this.parent.globalMatrix);
-
-        } else {
-            this.globalMatrix = new math.Matrix(1, 0, 0, 1, 0, 0);
-        }
-
-    }
-}
-
-class Bitmap extends DisplayObject {
-
-    image: HTMLImageElement;
-
-    //texture: string;
-
-    private _src = "";
-
-    private isLoaded = false;
-
-    constructor() {
-
-        super();
-        this.image = document.createElement('img');
-
-        // this.image.src = ad;
-        //this.isLoade = false;
+        isMouseDown = true;
+        let targetDisplayObjectArray = EventManager.getInstance().targetDisplayObjcetArray;
+        targetDisplayObjectArray.splice(0,targetDisplayObjectArray.length);
+        hitResult = stage.hitTest(e.offsetX, e.offsetY);
+        currentX = e.offsetX;
+        currentY = e.offsetY;
 
     }
 
-    set src(value: string) {
-        this._src = value;
-        this.isLoaded = false;
-    }
 
-    render(context2D: CanvasRenderingContext2D) {
+    window.onmousemove = (e)=>{
 
-        context2D.globalAlpha = this.alpha;
+        let targetDisplayObjcetArray = EventManager.getInstance().targetDisplayObjcetArray;
+        lastX = currentX;
+        lastY = currentY;
+        currentX = e.offsetX;
+        currentY = e.offsetY;
 
-        if (this.isLoaded) {
+        if (isMouseDown) {
 
-            context2D.drawImage(this.image, 0, 0);
-        }
+            for (let i = 0; i < targetDisplayObjcetArray.length; i++) {
 
-        else {
+                for (let event of targetDisplayObjcetArray[i].eventArray) {
+                    
+                    if (event.type.match("onmousemove") && event.ifCapture) {
 
-            this.image.src = this._src;
+                        event.func(e);
+                    }
+                }
+            }
 
-            this.image.onload = () => {
+            for (let i = targetDisplayObjcetArray.length - 1; i >= 0; i--) {
 
-                context2D.drawImage(this.image, 0, 0);
+                for (let event of targetDisplayObjcetArray[i].eventArray) {
 
-                this.isLoaded = true;
+                    if (event.type.match("onmousemove") && !event.ifCapture) {
 
+                        event.func(e);
+                    }
+                }
             }
         }
-
-    }
-}
-
-
-
-class TextField extends DisplayObject {
-
-    text: string = "";
-
-    font: string = "Arial";
-
-    size: string = "40";
-
-    render(context2D: CanvasRenderingContext2D) {
-
-
-        context2D.font = this.size + "px " + this.font;
-
-        context2D.fillText(this.text, 0, 0);
-
     }
 
-}
 
+    window.onmouseup = (e)=>{
 
+        isMouseDown = false;
+        let targetDisplayObjcetArray = EventManager.getInstance().targetDisplayObjcetArray;
+        targetDisplayObjcetArray.splice(0,targetDisplayObjcetArray.length);
+        let newHitRusult = stage.hitTest(e.offsetX, e.offsetY)
 
+        for (let i = targetDisplayObjcetArray.length - 1; i >= 0; i--) {
 
+            for (let event of targetDisplayObjcetArray[i].eventArray) {
 
-class DisplayObjectContainer extends DisplayObject implements Drawable {
+                if (event.type.match("onclick") && newHitRusult == hitResult ) {
 
-    array: Drawable[] = [];
-
-    render(context2D) {
-
-        for (let Drawable of this.array) {
-
-            Drawable.draw(context2D);
+                    event.func(e);
+                }
+            }
         }
     }
 
-    addChild(child: DisplayObject) {
+};
+                         
 
-        if (this.array.indexOf(child) == -1) {
 
-            this.array.push(child);
-
-            child.parent = this;
-        }
-
-    }
-
-    removechild(child: DisplayObject) {
-
-        var index = this.array.indexOf(child);
-
-        if (index > -1) {
-
-            this.array.splice(index, 1);
-
-        }
-
-    }
-
-    removeall() {
-
-        this.array = [];
-
-    }
-
-}
-
-class Graphics {
-
-}
-
-class Shape extends DisplayObject {
-
-    graphics: Graphics;
-
-    draw(context2D: CanvasRenderingContext2D) {
-
-        context2D.fillRect(0, 0, 0, 0);
-    }
-}
